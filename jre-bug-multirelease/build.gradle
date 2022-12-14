@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+    // mutil release jar
+    id 'me.champeau.mrjar' version "0.1"
+}
+
+group = 'com.turf00.test'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.turf00.test.jrebug.DemoJreBugApplication'
+    }
+}
+
+// enable multi release to show the problem
+multiRelease {
+    targetVersions 8, 11
+}
