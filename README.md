@@ -26,3 +26,38 @@ Normally we would expect `getResource("")` to return null but in the case of J11
 Java 11 replacement version
 Non-null resource found, assumed bug. Resource: jar:file:/Users/..../jre-bug/jre-bug-multirelease/build/libs/jre-bug-multirelease-0.0.1-SNAPSHOT.jar!/META-INF/versions/11/
 ```
+
+## Reason
+
+The real problem lies in JarFile.getJarEntry(String)
+
+```java
+// JarFile
+public ZipEntry getEntry(String name) {
+    JarFileEntry je = getEntry0(name);
+    if (isMultiRelease()) {
+        return getVersionedEntry(name, je);
+    }
+    return je;
+}
+
+private JarEntry getVersionedEntry(String name, JarEntry je) {
+    if (BASE_VERSION_FEATURE < versionFeature) {
+        if (!name.startsWith(META_INF)) {
+            // search for versioned entry
+            int v = versionFeature;
+            while (v > BASE_VERSION_FEATURE) {
+                JarFileEntry vje = getEntry0(META_INF_VERSIONS + v + "/" + name);
+                if (vje != null) {
+                  return vje.withBasename(name);
+                }
+              v--;
+              }
+            }
+        }
+        return je;
+    }
+```
+
+You can see that `getVersionedEntry` is triggered if we are dealing with a multi-release jar and therefore it will simply append the input name to the path and then check if that exists.
+For empty string it will always be non-null, if the running version of Java has any code to override for that version.
