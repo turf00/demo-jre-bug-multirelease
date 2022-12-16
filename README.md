@@ -6,6 +6,8 @@ Shows a bug with the JRE and getResource with multi release jars when getting a 
 There are two modules, one with and one without a mutli-release jar.
 You simply build then execute the jar.
 
+*The problem will be visible with Java 11 as that is the version I tested with.*
+
 The problem is triggered by calling ClassLoader.getResource with the empty string.
 
 E.g.
